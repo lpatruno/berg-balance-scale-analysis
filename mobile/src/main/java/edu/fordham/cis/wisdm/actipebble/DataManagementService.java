@@ -117,7 +117,7 @@ public class DataManagementService extends WearableListenerService implements Se
     /**
      * Flag that signals the end of data transmission from the watch
      */
-    private static final String DATA_COLLECTION_DONE = "/thats-all-folks";
+    private static final String DATA_COLLECTION_DONE = "/COMPLETE";
 
     /**
      * This is the equivalent of onCreate() but for Services. Allows for instantiating a service with arguments
@@ -167,8 +167,12 @@ public class DataManagementService extends WearableListenerService implements Se
      */
     private void registerSensorListeners(){
         wakeLock.acquire();
-        mSensorManager.registerListener(this, mAccelerometer, SAMPLE_RATE);
-        mSensorManager.registerListener(this, mGyroscope, SAMPLE_RATE);
+
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
+
+        //mSensorManager.registerListener(this, mAccelerometer, SAMPLE_RATE);
+        //mSensorManager.registerListener(this, mGyroscope, SAMPLE_RATE);
     }
 
 
@@ -189,6 +193,7 @@ public class DataManagementService extends WearableListenerService implements Se
             switch(event.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     mPhoneAccelerationRecords.add(new AccelerationRecord(x,y,z,time));
+                    //Log.i(TAG, "" + time + "   " + x + " " + y + " " + z);
                     break;
                 case Sensor.TYPE_GYROSCOPE:
                     mPhoneGyroRecords.add(new GyroscopeRecord(x,y,z,time));
@@ -268,6 +273,7 @@ public class DataManagementService extends WearableListenerService implements Se
         final String watchFile = "_watch.txt";
         final String phoneFile = "_phone.txt";
 
+
         // Write the sensor records to files on the phone's disk
         writeToFile(mWatchAccelerationRecords, filename+watchFile);
         writeToFile(mPhoneAccelerationRecords, filename+phoneFile);
@@ -281,6 +287,7 @@ public class DataManagementService extends WearableListenerService implements Se
                         filename+phoneFile,
                         gyFilename + watchFile,
                         gyFilename+phoneFile)).start();
+
 
         // Vibrate half a second for the user's sake
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
