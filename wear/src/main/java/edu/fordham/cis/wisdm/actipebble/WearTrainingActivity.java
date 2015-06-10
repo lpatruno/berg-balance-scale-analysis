@@ -51,7 +51,7 @@ public class WearTrainingActivity extends Activity implements SensorEventListene
     private ArrayList<GyroscopeRecord> mGyroscopeRecords = new ArrayList<GyroscopeRecord>();
 
     /**
-     * Debugging tag TEACHING JULIA GIT
+     * Debugging tag 
      */
     private static final String TAG = "WearTrainingActivity";
 
