@@ -42,36 +42,9 @@ public class LoginActivity extends Activity {
      */
     private static HashMap<String,Character> spinnerEntries = new HashMap<String, Character>();
 
-    //I know this is ugly, but it has to go *somewhere*
+    // List of Berg Balance Scale tasks
     static {
-        spinnerEntries.put("Standard- Walking", 'A');
-        spinnerEntries.put("Standard- Jogging", 'B');
-        spinnerEntries.put("Standard- Stairs", 'C');
-        spinnerEntries.put("Standard- Sitting", 'D');
-        spinnerEntries.put("Standard- Standing", 'E');
-        spinnerEntries.put("Standard- Typing", 'F');
-        spinnerEntries.put("Standard- Brushing Teeth", 'G');
-        spinnerEntries.put("Eating- Soup/Cereal", 'H');
-        spinnerEntries.put("Eating- Fries/Chips", 'I');
-        spinnerEntries.put("Eating- Twirling Pasta", 'J');
-        spinnerEntries.put("Eating- Drinking Water", 'K');
-        spinnerEntries.put("Eating- Sandwich", 'L');
-        spinnerEntries.put("Sports- Ball Kicking", 'M');
-        spinnerEntries.put("Sports- Tennis", 'N');
-        spinnerEntries.put("Sports- Catch", 'O');
-        spinnerEntries.put("Sports- Dancing", 'P');
-        spinnerEntries.put("Sports- Curls", 'Q');
-        spinnerEntries.put("Sports- Shoulder Press", 'R');
-        spinnerEntries.put("Sports- Bouncing a Ball", 'S');
-        spinnerEntries.put("Sports- Bicycling", 'T');
-        spinnerEntries.put("Other- Reading", 'U');
-        spinnerEntries.put("Other- Writing", 'V');
-        spinnerEntries.put("Other- Clapping", 'W');
-        spinnerEntries.put("Other- Driving", 'X');
-        spinnerEntries.put("Other- Folding Clothes", 'Y');
-        spinnerEntries.put("Other- Writing (Whiteboard)", 'Z');
-        spinnerEntries.put("Other- Playing Guitar", '1');
-        spinnerEntries.put("Gait- Hemiplegic Gait", '2');
+        spinnerEntries.put("B. Standing unsupported", 'B');
     }
 
     @Override
@@ -80,25 +53,24 @@ public class LoginActivity extends Activity {
         setContentView(R.layout.activity_login);
 
         mName = (EditText)findViewById(R.id.name);
+        mSpinner = (Spinner)findViewById(R.id.spinner);
 
-        mSpinner = (Spinner) findViewById(R.id.spinner);
         final Object[] activities = spinnerEntries.keySet().toArray();
+
         //sort() is called so the activities will be ordered by grouping (otherwise they'd be in a random order)
         Arrays.sort(activities);
+
         ArrayAdapter adapter =
                 new ArrayAdapter(this, android.R.layout.simple_spinner_item, activities);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSpinner.setAdapter(adapter);
+
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-            }
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) { }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
+            public void onNothingSelected(AdapterView<?> parent) { }
         });
 
         mStartTraining = (Button)findViewById(R.id.login);
@@ -106,12 +78,16 @@ public class LoginActivity extends Activity {
         mStartTraining.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 String name = mName.getText().toString().toLowerCase().trim().replace(" ", "_");
                 char activity = spinnerEntries.get(mSpinner.getSelectedItem());
+
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
+
                 i.putExtra("ACTIVITY", activity);
                 i.putExtra("ACTIVITY_NAME", mSpinner.getSelectedItem().toString());
                 i.putExtra("NAME", name);
+
                 startActivity(i);
 
             }

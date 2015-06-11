@@ -168,11 +168,11 @@ public class DataManagementService extends WearableListenerService implements Se
     private void registerSensorListeners(){
         wakeLock.acquire();
 
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
+        //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+        //mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
 
-        //mSensorManager.registerListener(this, mAccelerometer, SAMPLE_RATE);
-        //mSensorManager.registerListener(this, mGyroscope, SAMPLE_RATE);
+        mSensorManager.registerListener(this, mAccelerometer, SAMPLE_RATE);
+        mSensorManager.registerListener(this, mGyroscope, SAMPLE_RATE);
     }
 
 
@@ -211,6 +211,8 @@ public class DataManagementService extends WearableListenerService implements Se
      */
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
+
+        Log.e(TAG, "phone received message from watch");
 
         //Once the watch starts sending data its time to stop collecting
         shouldSample = false;

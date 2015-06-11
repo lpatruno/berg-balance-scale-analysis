@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
     /**
      * The label for the activity being done
      */
-    private char   label;
+    private char label;
 
     /**
      * The user's name
@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
     private String actname;
 
     /**
-     * Flag for determining if data collection is occuring
+     * Flag for determining if data collection is occurring
      */
     private boolean isRunning = false;
 
@@ -91,7 +91,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Intent i = getIntent();
+
         if (i != null) {
             label = i.getCharExtra("ACTIVITY", 'A');
             name  = i.getStringExtra("NAME");
@@ -99,6 +101,7 @@ public class MainActivity extends Activity {
         } else {
             Toast.makeText(this, "Started without name or activity label", Toast.LENGTH_LONG).show();
         }
+
         mActivity = (TextView)findViewById(R.id.activity_label);
         mUsername = (TextView)findViewById(R.id.username);
 
@@ -170,10 +173,13 @@ public class MainActivity extends Activity {
         if(ScreenLockReceiver.wasScreenOn && isRunning) {
 
             service = new Intent(this, DataManagementService.class);
+
             service.putExtra("NAME", name);
             service.putExtra("ACTIVITY", label);
             startService(service);
+
             new Thread(new Worker()).start();
+
             try {
                 unregisterReceiver(mReceiver);
             } catch (IllegalArgumentException e) {

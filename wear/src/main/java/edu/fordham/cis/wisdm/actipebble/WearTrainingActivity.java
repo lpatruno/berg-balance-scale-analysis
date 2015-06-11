@@ -51,7 +51,7 @@ public class WearTrainingActivity extends Activity implements SensorEventListene
     private ArrayList<GyroscopeRecord> mGyroscopeRecords = new ArrayList<GyroscopeRecord>();
 
     /**
-     * Debugging tag 
+     * Debugging tag
      */
     private static final String TAG = "WearTrainingActivity";
 
@@ -88,7 +88,7 @@ public class WearTrainingActivity extends Activity implements SensorEventListene
     /**
      * Sample rate, expressed as number of microseconds between samplings
      */
-    private static final int SAMPLE_RATE = SensorManager.SENSOR_DELAY_FASTEST;
+    private static final int SAMPLE_RATE = 50000; //SensorManager.SENSOR_DELAY_FASTEST;
 
     /**
      * Number of seconds to collect data.
