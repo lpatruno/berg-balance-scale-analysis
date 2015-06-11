@@ -197,6 +197,7 @@ public class DataManagementService extends WearableListenerService implements Se
                     break;
                 case Sensor.TYPE_GYROSCOPE:
                     mPhoneGyroRecords.add(new GyroscopeRecord(x,y,z,time));
+                    break;
             }
 
 
