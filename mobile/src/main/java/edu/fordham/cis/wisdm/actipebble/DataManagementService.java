@@ -6,6 +6,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
@@ -120,6 +121,12 @@ public class DataManagementService extends WearableListenerService implements Se
     private static final String DATA_COLLECTION_DONE = "/COMPLETE";
 
     /**
+     * Time in milliseconds after which to release the wake lock and unregister the sensors in case
+     * no data is received from the watch
+     */
+    private long timerLimit =  130*1000;
+
+    /**
      * This is the equivalent of onCreate() but for Services. Allows for instantiating a service with arguments
      * @param intent The intent that carries all arguments
      * @param flags Any special flags for the class
@@ -131,15 +138,13 @@ public class DataManagementService extends WearableListenerService implements Se
         userName = intent.getStringExtra("NAME");
         activity = intent.getCharExtra("ACTIVITY", 'A');
 
-        powerManager = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-
-        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
+        // Acquire and register sensors and wake lock
         registerSensorListeners();
+
+        // Create timer to release wake lock and stop sampling the accelerometers
+        // Does this after 130 seconds regardless of whether or not data has been received from
+        // the watch
+        startTimer();
 
         //Don't restart when app is shut down and reopened
         return START_NOT_STICKY;
@@ -155,27 +160,76 @@ public class DataManagementService extends WearableListenerService implements Se
     public void onDestroy() {
         Log.i(TAG, "Un registering phone sensor listeners.");
 
-        if(wakeLock.isHeld()) {
-            wakeLock.release();
-        }
-        mSensorManager.unregisterListener(this);
+        // Put this here just for safety purposes
+        unregisterSensorListeners();
 
         super.onDestroy();
     }
 
     /**
-     * This method acquires the wake lock and registers the accelerometer and sensor listeners at
-     * the chosen SAMPLE_RATE.
+     * This method acquires and registers the sensors and the wake lock for sensor sampling
+     * This is kept within a CountDownTimer in order to prevent the wakelock remaining on if
+     * the data is not received from the watch.
      *
      */
     private void registerSensorListeners(){
-        wakeLock.acquire();
 
-        //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
-        //mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
+        powerManager = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        wakeLock.acquire();
 
         mSensorManager.registerListener(this, mAccelerometer, SAMPLE_RATE);
         mSensorManager.registerListener(this, mGyroscope, SAMPLE_RATE);
+
+    }
+
+    /**
+     * Unregister the sensors and release the wake lock
+     */
+    private void unregisterSensorListeners(){
+
+        /*
+        Added null checks due to NullPointerExceptions caused by these objects when
+        connection to the phone was lost.
+        */
+
+
+        if (wakeLock != null) {
+            if (wakeLock.isHeld()) {
+                wakeLock.release();
+            }
+        }
+
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(this);
+        }
+    }
+
+    /**
+     * Timer to unregister the sensors and release the wake lock after some period of time
+     */
+    private void startTimer(){
+
+        new CountDownTimer(timerLimit, timerLimit){
+
+            public void onTick(long untilFinished){
+                // Do nothing
+            };
+
+            /**
+             * If data has not been received from the watch, let go of the wake lock and unregister
+             * the sensors
+             */
+            public void onFinish(){
+                Log.d(TAG, "Time up. Releasing wake lock");
+                unregisterSensorListeners();
+            };
+        }.start();
     }
 
 
@@ -286,6 +340,7 @@ public class DataManagementService extends WearableListenerService implements Se
         writeToFileGyro(mWatchGyroRecords, gyFilename + watchFile);
         writeToFileGyro(mPhoneGyroRecords, gyFilename+phoneFile);
 
+
         // Email all 4 files as attachments
         new Thread(
                 new SendData(EMAIL_SENDER, EMAIL_PASSWORD,
@@ -293,7 +348,6 @@ public class DataManagementService extends WearableListenerService implements Se
                         filename+phoneFile,
                         gyFilename + watchFile,
                         gyFilename+phoneFile)).start();
-
 
         // Vibrate half a second for the user's sake
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);

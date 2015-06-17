@@ -33,6 +33,11 @@ public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
 
     /**
+     * String for Luigi's logging.
+     */
+    private static final String LTAG = "Luigi's New Code";
+
+    /**
      * Buttons to trigger events
      */
     private Button mStartButton, mStopButton;
@@ -83,9 +88,9 @@ public class MainActivity extends Activity {
     private GoogleApiClient mGoogleApiClient;
 
     /**
-     * Holds the data collection service (global so it can be stopped by the cancel button)
+     * Holds the data collection dataManagementService (global so it can be stopped by the cancel button)
      */
-    private Intent service;
+    private Intent dataManagementService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,26 +117,35 @@ public class MainActivity extends Activity {
         mStopButton = (Button)findViewById(R.id.stop_button);
 
 
+        /**
+         * We actually need to make this button do what it's supposed to do. These things are
+         *      1. Start the DataManagementService.
+         *      2. Contact the Wear device and start the dataManagementService on the watch as well.
+         *      3. After these things are done, the button should be disabled in some way.
+         */
         mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), "Please lock phone and place in pocket", Toast.LENGTH_SHORT).show();
-                isRunning = true;
+
+                startSampling();
             }
         });
 
         mStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                    /*
                     try {
                         unregisterReceiver(screenLockReceiver);
                     } catch (IllegalArgumentException e) {
                         Log.i(TAG, "Unregistered receiver was asked to unregister. Ignoring.");
                     }
-                    isRunning = false;
+                    */
+
                     //Avoid some NullPointerExceptions
-                    if (service != null) {
-                        stopService(service);
+                    if (isRunning) {
+                        isRunning = false;
+                        stopService(dataManagementService);
                     }
                     finish();
             }
@@ -163,13 +177,52 @@ public class MainActivity extends Activity {
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         screenLockReceiver = new ScreenLockReceiver();
-        registerReceiver(screenLockReceiver, intentFilter);
+        //registerReceiver(screenLockReceiver, intentFilter);
         isReceiverRegistered = true;
+    }
+
+    /**
+     * This function is called when the start button is clicked.
+     * It starts sampling the phone's accelerometer and gyroscope and also contacts the wearable
+     * to do the same. The isRunning boolean is set to prevent the service from restarting.
+     */
+    private void startSampling(){
+
+        if (!isRunning){
+            // Only start if the service isn't already running.
+            Log.d(LTAG, "Service is now starting.");
+
+            isRunning = true;
+            // Now start the dataManagementService and do everything else here
+
+            // Start the DataManagementService which samples the sensors
+            dataManagementService = new Intent(getApplicationContext(), DataManagementService.class);
+            dataManagementService.putExtra("NAME", name);
+            dataManagementService.putExtra("ACTIVITY", label);
+            startService(dataManagementService);
+
+            // Contact the Wearable to begin sampling its sensors
+            new Thread(new Worker()).start();
+
+
+            Toast.makeText(getApplicationContext(), "Please lock phone and place in pocket.",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // Display error message if service already running
+            Log.d(LTAG, "Service is already started. Do nothing.");
+            Toast.makeText(getApplicationContext(),
+                    "Service already running. Please hit the stop button.", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
     @Override
     protected void onPause() {
+
+        /*
+                I am commenting all of this out because it is being changed.
+                The dataManagementService will start/stop with the start/stop buttons
+                I will also get rid of this screen shutting off thing
 
         // The ScreenLockReceiver boolean is true only when the screen had been shut off
         // Hence, the contents of this block only occur when onPause is called since the screen
@@ -177,10 +230,10 @@ public class MainActivity extends Activity {
         if(ScreenLockReceiver.wasScreenOn && isRunning) {
 
             // Start the DataManagementService which samples the sensors
-            service = new Intent(this, DataManagementService.class);
-            service.putExtra("NAME", name);
-            service.putExtra("ACTIVITY", label);
-            startService(service);
+            dataManagementService = new Intent(this, DataManagementService.class);
+            dataManagementService.putExtra("NAME", name);
+            dataManagementService.putExtra("ACTIVITY", label);
+            startService(dataManagementService);
 
             // Contact the Wearable to begin sampling its sensors
             new Thread(new Worker()).start();
@@ -197,6 +250,7 @@ public class MainActivity extends Activity {
             // I imagine
             isRunning = false;
         }
+        */
         super.onPause();
     }
 
