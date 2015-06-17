@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
     /**
      * Enables the activity to track the screen being locked and trigger appropriate events
      */
-    private ScreenLockReceiver mReceiver;
+    private ScreenLockReceiver screenLockReceiver;
 
     /**
      * Flag to tell if Receiver is registered
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                     try {
-                        unregisterReceiver(mReceiver);
+                        unregisterReceiver(screenLockReceiver);
                     } catch (IllegalArgumentException e) {
                         Log.i(TAG, "Unregistered receiver was asked to unregister. Ignoring.");
                     }
@@ -162,29 +162,39 @@ public class MainActivity extends Activity {
 
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-        mReceiver = new ScreenLockReceiver();
-        registerReceiver(mReceiver, intentFilter);
+        screenLockReceiver = new ScreenLockReceiver();
+        registerReceiver(screenLockReceiver, intentFilter);
         isReceiverRegistered = true;
     }
 
 
     @Override
     protected void onPause() {
+
+        // The ScreenLockReceiver boolean is true only when the screen had been shut off
+        // Hence, the contents of this block only occur when onPause is called since the screen
+        // has been shut off.
         if(ScreenLockReceiver.wasScreenOn && isRunning) {
 
+            // Start the DataManagementService which samples the sensors
             service = new Intent(this, DataManagementService.class);
-
             service.putExtra("NAME", name);
             service.putExtra("ACTIVITY", label);
             startService(service);
 
+            // Contact the Wearable to begin sampling its sensors
             new Thread(new Worker()).start();
 
+            // Unregister the screenLockReceiver.
+            // Not sure why Andrew does this.
             try {
-                unregisterReceiver(mReceiver);
+                unregisterReceiver(screenLockReceiver);
             } catch (IllegalArgumentException e) {
                 Log.i(TAG, "Unregistered receiver was asked to unregister. Ignoring.");
             }
+
+            // Set to false so this block isn't triggered again if we turn the screen on and off,
+            // I imagine
             isRunning = false;
         }
         super.onPause();
@@ -220,12 +230,18 @@ public class MainActivity extends Activity {
         public void run() {
             NodeApi.GetConnectedNodesResult nodes =
                     Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
             for (Node node : nodes.getNodes()) {
+
                 MessageApi.SendMessageResult result;
+
                 Log.d(TAG, "Started message sending process.");
-                result= Wearable.MessageApi.sendMessage(
+
+                result = Wearable.MessageApi.sendMessage(
                         mGoogleApiClient, node.getId(), START_TRAINING, null).await();
+
                 Log.d(TAG, "Sent to node: " + node.getId() + " with display name: " + node.getDisplayName());
+
                 if (!result.getStatus().isSuccess()) {
                     Log.e(TAG, "ERROR: failed to send Message: " + result.getStatus());
                 } else {

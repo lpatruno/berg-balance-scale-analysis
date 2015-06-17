@@ -134,7 +134,8 @@ public class DataManagementService extends WearableListenerService implements Se
         powerManager = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
@@ -152,11 +153,13 @@ public class DataManagementService extends WearableListenerService implements Se
      */
     @Override
     public void onDestroy() {
+        Log.i(TAG, "Un registering phone sensor listeners.");
+
         if(wakeLock.isHeld()) {
             wakeLock.release();
         }
         mSensorManager.unregisterListener(this);
-        Log.i(TAG, "Un registering phone sensor listeners.");
+
         super.onDestroy();
     }
 
