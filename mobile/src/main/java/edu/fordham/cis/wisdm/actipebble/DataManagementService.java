@@ -250,7 +250,6 @@ public class DataManagementService extends WearableListenerService implements Se
             switch(event.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     mPhoneAccelerationRecords.add(new AccelerationRecord(x,y,z,time));
-                    //Log.i(TAG, "" + time + "   " + x + " " + y + " " + z);
                     break;
                 case Sensor.TYPE_GYROSCOPE:
                     mPhoneGyroRecords.add(new GyroscopeRecord(x,y,z,time));
@@ -321,8 +320,8 @@ public class DataManagementService extends WearableListenerService implements Se
     private void finalizeDataCollection() {
 
         // Sort the lists in ascending order of timestamp
-		Collections.sort(mWatchAccelerationRecords);
-		Collections.sort(mWatchGyroRecords);
+		//Collections.sort(mWatchAccelerationRecords);
+		//Collections.sort(mWatchGyroRecords);
 
         Log.i(TAG, "Watch Acceleration List size is " + mWatchAccelerationRecords.size());
         Log.i(TAG, "Watch Gyro List size is " + mWatchGyroRecords.size());
