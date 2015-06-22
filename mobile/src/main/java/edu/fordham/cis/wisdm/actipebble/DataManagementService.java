@@ -319,9 +319,6 @@ public class DataManagementService extends WearableListenerService implements Se
      */
     private void finalizeDataCollection() {
 
-        // Sort the lists in ascending order of timestamp
-		//Collections.sort(mWatchAccelerationRecords);
-		//Collections.sort(mWatchGyroRecords);
 
         Log.i(TAG, "Watch Acceleration List size is " + mWatchAccelerationRecords.size());
         Log.i(TAG, "Watch Gyro List size is " + mWatchGyroRecords.size());

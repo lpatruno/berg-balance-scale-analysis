@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -38,6 +39,12 @@ public class LoginActivity extends Activity {
     private Spinner mSpinner;
 
     /**
+     * The spinner to choose sensor sampling frequency
+     */
+    private Spinner mSpinnerFrequency;
+
+
+    /**
      * The map that maps a character to its activity name
      */
     private static HashMap<String,Character> spinnerEntries = new HashMap<String, Character>();
@@ -54,6 +61,7 @@ public class LoginActivity extends Activity {
 
         mName = (EditText)findViewById(R.id.name);
         mSpinner = (Spinner)findViewById(R.id.spinner);
+
 
         final Object[] activities = spinnerEntries.keySet().toArray();
 
@@ -72,6 +80,19 @@ public class LoginActivity extends Activity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) { }
         });
+
+
+        // Started implementing the spinner for frequency.
+        // TODO when the frequency is selected update the frequencies
+        mSpinnerFrequency = (Spinner)findViewById(R.id.sampling_rate);
+
+        String[] frequencies = new String[]{"20Hz", "50Hz", "100Hz"};
+
+        ArrayAdapter<String> frequency_adapter =
+                new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, frequencies);
+        mSpinnerFrequency.setAdapter(frequency_adapter);
+
+
 
         mStartTraining = (Button)findViewById(R.id.login);
 
